@@ -27,45 +27,11 @@ kotlin {
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
-            /** Because we are linking our library inside the composeApp, we can not
-             * use a static library. You can avoid this by linking in the def file.
-             **/
-            isStatic = false
-            // For linking our library. You can specify this on def file also
-            linkerOpts("-L${rootDir}/composeApp/native/ios","-ltinyexpr_ios_sim")
-        }
-
-        iosTarget.compilations["main"].cinterops.create("tinyexpr"){
-            definitionFile = file("nativeInterop/cinterop/tinyexpr.def")
-            // Header dir
-            includeDirs("native/include")
         }
     }
 
-    jvm("desktop")
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        moduleName = "composeApp"
-        browser {
-            val rootDirPath = project.rootDir.path
-            val projectDirPath = project.projectDir.path
-            commonWebpackConfig {
-                outputFileName = "composeApp.js"
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(rootDirPath)
-                        add(projectDirPath)
-                    }
-                }
-            }
-        }
-        binaries.executable()
-    }
 
     sourceSets {
-        val desktopMain by getting
 
         androidMain.dependencies {
             implementation(compose.preview)
@@ -80,20 +46,17 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
-        }
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
+            implementation(project(":mylib"))
         }
     }
 }
 
 android {
-    namespace = "org.adman.kmp.tiny.expr"
+    namespace = "org.adman.kmp.tiny.expr.app"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "org.adman.kmp.tiny.expr"
+        applicationId = "org.adman.kmp.tiny.expr.app"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -115,10 +78,10 @@ android {
     }
     externalNativeBuild {
         cmake {
-            path = file("native/CMakeLists.txt")
+            path = file("../mylib/native/CMakeLists.txt")
         }
     }
-    ndkVersion = "28.0.12916984 rc3"
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
