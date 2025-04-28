@@ -62,7 +62,7 @@ kotlin {
              **/
             isStatic = false
             // For linking our library. You can specify this on def file also
-            linkerOpts("-L${rootDir}/composeApp/native/ios","-ltinyexpr_ios_sim")
+            linkerOpts("-L${rootDir}/mylib/native/ios","-ltinyexpr_ios_sim")
         }
 
         iosTarget.compilations["main"].cinterops.create("tinyexpr"){
